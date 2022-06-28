@@ -5,5 +5,10 @@
   "main": "index.js",
   "repository": "https://github.com/palgorhythm/batteryChords.git",
   "author": "Jacob Richards <jacob.richards33@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@tonaljs/chord": "^4.6.5",
+    "@tonaljs/note": "^4.6.5",
+    "@tonaljs/scale": "^4.6.5"
+  }
 }
