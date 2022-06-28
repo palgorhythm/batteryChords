@@ -1,0 +1,9 @@
+{
+  "name": "batteryChords",
+  "version": "1.0.0",
+  "description": "chords for my solo project, BATTERY",
+  "main": "index.js",
+  "repository": "https://github.com/palgorhythm/batteryChords.git",
+  "author": "Jacob Richards <jacob.richards33@gmail.com>",
+  "license": "MIT"
+}
