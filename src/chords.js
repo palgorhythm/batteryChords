@@ -46,5 +46,8 @@ const _getMidiFromChord = (notes) => {
 
 
 const chords = getChords({root: 'c', scaleType: 'major'})
-const mappedChords = chords.map(chord => _getMidiFromChord(chord))
-console.log(mappedChords)
+// const mappedChords = chords.map(chord => _getMidiFromChord(chord))
+
+// const 
+
+// module.exports = {}

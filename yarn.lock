@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@babel/runtime@^7.18.3":
+  version "7.18.6"
+  resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.18.6.tgz#6a1ef59f838debd670421f8c7f2cbb8da9751580"
+  integrity sha512-t9wi7/AW6XtKahAe20Yw0/mMljKq0B1r2fPdvaAdV/KPDZewFXdaaa6K7lxmZBZ8FBNpCiAT6iHPmd6QO9bKfQ==
+  dependencies:
+    regenerator-runtime "^0.13.4"
+
 "@tonaljs/chord-detect@^4.6.5":
   version "4.6.5"
   resolved "https://registry.yarnpkg.com/@tonaljs/chord-detect/-/chord-detect-4.6.5.tgz#83c40143f98f245198e88dcffa05b56525c0a1d1"
@@ -83,3 +90,38 @@
     "@tonaljs/note" "^4.6.5"
     "@tonaljs/pcset" "^4.6.5"
     "@tonaljs/scale-type" "^4.6.5"
+
+automation-events@^4.0.19:
+  version "4.0.19"
+  resolved "https://registry.npmjs.org/automation-events/-/automation-events-4.0.19.tgz#4358fa5fce8b091b3dcd51e7f52cce6590fc5d48"
+  integrity sha512-e8ALmWdXSkDAtDVkmqLcCDMfMMvHcPTwsg+1GsxEO8+Cyg7FQs7F3VKifzdRTADVU6S1aqlPzDE3+KLFsH0sxA==
+  dependencies:
+    "@babel/runtime" "^7.18.3"
+    tslib "^2.4.0"
+
+regenerator-runtime@^0.13.4:
+  version "0.13.9"
+  resolved "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.13.9.tgz#8925742a98ffd90814988d7566ad30ca3b263b52"
+  integrity sha512-p3VT+cOEgxFsRRA9X4lkI1E+k2/CtnKtU4gcxyaCUreilL/vqI6CdZ3wxVUx3UOUg+gnUOQQcRI7BmSI656MYA==
+
+standardized-audio-context@^25.1.8:
+  version "25.3.28"
+  resolved "https://registry.npmjs.org/standardized-audio-context/-/standardized-audio-context-25.3.28.tgz#c3126486732bb310f18c94d425d732b745d0c310"
+  integrity sha512-w3TIDQ2z5iA76A3qFjL/knf45BAwHYAqQmDNlDrlE2El89kFKv43TjiN94N0joiMr7G3CRmO1bOuQ7wopDon9g==
+  dependencies:
+    "@babel/runtime" "^7.18.3"
+    automation-events "^4.0.19"
+    tslib "^2.4.0"
+
+tone@^14.7.77:
+  version "14.7.77"
+  resolved "https://registry.npmjs.org/tone/-/tone-14.7.77.tgz#12a2a9f033952ccdb552275a6384ca5d36d4b5ed"
+  integrity sha512-tCfK73IkLHyzoKUvGq47gyDyxiKLFvKiVCOobynGgBB9Dl0NkxTM2p+eRJXyCYrjJwy9Y0XCMqD3uOYsYt2Fdg==
+  dependencies:
+    standardized-audio-context "^25.1.8"
+    tslib "^2.0.1"
+
+tslib@^2.0.1, tslib@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.npmjs.org/tslib/-/tslib-2.4.0.tgz#7cecaa7f073ce680a05847aa77be941098f36dc3"
+  integrity sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==

@@ -1,5 +1,5 @@
 {
-  "name": "batteryChords",
+  "name": "battery-chords",
   "version": "1.0.0",
   "description": "chords for my solo project, BATTERY",
   "main": "index.js",
@@ -9,6 +9,7 @@
   "dependencies": {
     "@tonaljs/chord": "^4.6.5",
     "@tonaljs/note": "^4.6.5",
-    "@tonaljs/scale": "^4.6.5"
+    "@tonaljs/scale": "^4.6.5",
+    "tone": "^14.7.77"
   }
 }
