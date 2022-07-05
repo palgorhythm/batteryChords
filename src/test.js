@@ -1,3 +1,13 @@
 const { handle } = require("./handler");
 
-console.log(handle({note: 60, velocity: 100, channel: 1}))
+// spd hit
+console.log('spd hit', handle({note: 57, velocity: 100, channel: 1}))
+
+// kick hit
+console.log('kick hit', handle({note: 60, velocity: 100, channel: 1}))
+
+// tom hit
+console.log('tom hit', handle({note: 64, velocity: 100, channel: 1}))
+
+// snare hit
+console.log('snare hit', handle({note: 62, velocity: 100, channel: 1}))

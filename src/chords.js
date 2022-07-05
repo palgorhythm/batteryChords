@@ -1,27 +1,19 @@
 const Scale = require('@tonaljs/scale')
 const Note = require('@tonaljs/note')
+const { CONFIG } = require('./config')
 
-const CONFIG = {
-  octave: {
-    min: 1,
-    max: 6
-  },
-  numExtensions: 5
-}
-
-const getChords = ({root, scaleType}) => {
+const _keyToNoteNameChords = ({root, scaleType}) => {
   const scale = Scale.get(root + ' ' + scaleType)
   const notes = scale.notes
   const chords = []
   for(let i = 0; i < notes.length; i ++){
-    const extensions = Array.from({length: CONFIG.numExtensions}).map((_,idx) => idx * 2)
-    const chord = extensions.map(ext => notes[(i + ext) % notes.length])
+    const chord = CONFIG.chord.extensions.map(ext => notes[(i + ext) % notes.length])
     chords.push(chord)
   }
   return chords
 }
 
-const _getMidiFromNote = ({note, octaveMin = CONFIG.octave.min, octaveMax = CONFIG.octave.max }) => {
+const _noteNameToMidi = ({note, octaveMin = CONFIG.chord.octave.min, octaveMax = CONFIG.chord.octave.max }) => {
   if(octaveMax < octaveMin){
     throw new Error('octaveMax must be >= octaveMin!')
   }
@@ -29,25 +21,27 @@ const _getMidiFromNote = ({note, octaveMin = CONFIG.octave.min, octaveMax = CONF
   return Note.get(note + randomOctave).midi
 }
 
-const _getMidiFromChord = (notes) => {
+const _noteNameChordToMidi = (noteNameChord) => {
   const midi = []
-  for(let i = 0; i < notes.length; i ++){
-    const note = notes[i]
+  for(let i = 0; i < noteNameChord.length; i ++){
+    const note = noteNameChord[i]
     if(i === 0){
-      midi.push(_getMidiFromNote({note, octaveMin: 2, octaveMax: 3}))
+      midi.push(_noteNameToMidi({note, octaveMin: 2, octaveMax: 3}))
+    } else if(i === noteNameChord.length - 1) {
+      midi.push(_noteNameToMidi({note, octaveMin: 5, octaveMax: 7}))
     } else {
-      midi.push(_getMidiFromNote({note, octaveMin: 4, octaveMax: 6}))
+      midi.push(_noteNameToMidi({note, octaveMin: 4, octaveMax: 6}))
     }
   }
-  return midi
+  return midi.sort((a,b) => a < b ? - 1 : 1)
+}
+
+const keyToMidiChords = ({root, scaleType}) => {
+  const noteNameChords = _keyToNoteNameChords({root, scaleType})
+  const midiChords = noteNameChords.map(chord => _noteNameChordToMidi(chord))
+  return midiChords
 }
 
 
 
-
-const chords = getChords({root: 'c', scaleType: 'major'})
-// const mappedChords = chords.map(chord => _getMidiFromChord(chord))
-
-// const 
-
-// module.exports = {}
+module.exports = {keyToMidiChords}
