@@ -27,8 +27,6 @@ const _noteNameChordToMidi = (noteNameChord) => {
     const note = noteNameChord[i]
     if(i === 0){
       midi.push(_noteNameToMidi({note, octaveMin: 2, octaveMax: 3}))
-    } else if(i === noteNameChord.length - 1) {
-      midi.push(_noteNameToMidi({note, octaveMin: 5, octaveMax: 7}))
     } else {
       midi.push(_noteNameToMidi({note, octaveMin: 4, octaveMax: 6}))
     }

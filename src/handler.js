@@ -34,13 +34,13 @@ const _mute = () => {
 
 const handle = ({note, velocity, channel}) => {
   if(velocity === 0){
-    return _getNotesFromState({velocity, channel})
+    return [..._getNotesFromState({velocity, channel}),..._getNotesFromState({velocity, channel}).map(n => ({...n, note: n.note + 12}))]
   }
   switch(note){
     case CONFIG.kickMidiNote: {
       _setChordFromKeyAndNote({ key: STATE.key, note: STATE.note })
       const notes = _getNotesFromState({velocity, channel})
-      return notes.filter((_, idx) => idx !== notes.length -1)
+      return notes.filter((_, idx) => idx !== notes.length - 1)
     }
     case CONFIG.snareMidiNote: {
       const notes = _getNotesFromState({velocity, channel})
@@ -48,7 +48,7 @@ const handle = ({note, velocity, channel}) => {
         return []
       }
       const lastNote = notes[notes.length - 1]
-      return [lastNote]
+      return [{...lastNote, note: lastNote.note + 12 }]
     }
     case CONFIG.tomMidiNote: {
       const notes = _getNotesFromState({velocity, channel})
@@ -57,7 +57,7 @@ const handle = ({note, velocity, channel}) => {
       }
       const randomIndex = (1 + Math.round(Math.random() * (notes.length - 3)))
       const chosenNote = notes[randomIndex]
-      return [chosenNote]
+      return [{...chosenNote, note: chosenNote.note + 12 }]
     }
     default: {
       const key = Object.values(CONFIG.keys).find((key) => note >= key.noteRange[0] && note <= key.noteRange[1])

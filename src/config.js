@@ -16,7 +16,7 @@ module.exports = {
     chord: {
       octave: {
         min: 1,
-        max: 6,
+        max: 5,
       },
       extensions: [0, 2, 4, 6, 8, 12],
     },
