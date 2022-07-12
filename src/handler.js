@@ -67,7 +67,7 @@ const handle = ({note, velocity, channel}) => {
       _setChordFromKeyAndNote({ key, note })
       STATE.key = key
       STATE.note = note
-      return []
+      return _mute()
     }
   }
 }
