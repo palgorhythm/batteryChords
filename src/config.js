@@ -13,12 +13,18 @@ module.exports = {
       bSharpMajor:{root: 'b', scaleType: 'major', noteRange: [72,78]},
       bSharpMajor:{root: 'c#', scaleType: 'major', noteRange: [81,87]},
     },
-    chord: {
+    bass: {
       octave: {
         min: 1,
-        max: 5,
+        max: 3,
+      }
+    },
+    chord: {
+      octave: {
+        min: 4,
+        max: 6,
       },
-      extensions: [0, 2, 4, 6, 8, 12],
+      extensions: [0, 2, 4, 6, 8, 9],
     },
     scale: {
       numNotes: 7,

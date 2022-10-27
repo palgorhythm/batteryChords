@@ -13,12 +13,13 @@ const _keyToNoteNameChords = ({root, scaleType}) => {
   return chords
 }
 
-const _noteNameToMidi = ({note, octaveMin = CONFIG.chord.octave.min, octaveMax = CONFIG.chord.octave.max }) => {
+const _noteNameToMidi = ({note, octaveMin, octaveMax }) => {
   if(octaveMax < octaveMin){
     throw new Error('octaveMax must be >= octaveMin!')
   }
   const randomOctave = Math.round(octaveMin + (Math.random() * (octaveMax - octaveMin)))
-  return Note.get(note + randomOctave).midi
+  const noteInstance = Note.get(note + randomOctave)
+  return noteInstance.midi
 }
 
 const _noteNameChordToMidi = (noteNameChord) => {
@@ -26,9 +27,9 @@ const _noteNameChordToMidi = (noteNameChord) => {
   for(let i = 0; i < noteNameChord.length; i ++){
     const note = noteNameChord[i]
     if(i === 0){
-      midi.push(_noteNameToMidi({note, octaveMin: 2, octaveMax: 3}))
+      midi.push(_noteNameToMidi({note, octaveMin: CONFIG.bass.octave.min, octaveMax: CONFIG.bass.octave.max}))
     } else {
-      midi.push(_noteNameToMidi({note, octaveMin: 4, octaveMax: 6}))
+      midi.push(_noteNameToMidi({note, octaveMin: CONFIG.chord.octave.min, octaveMax: CONFIG.chord.octave.max}))
     }
   }
   return midi.sort((a,b) => a < b ? - 1 : 1)

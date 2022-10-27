@@ -24,6 +24,7 @@ const _setChordFromKeyAndNote = ({key, note}) => {
   const midiChords = keyToMidiChords({root: key.root, scaleType: key.scaleType}) // should have length 7
   const noteInKey = (note - key.noteRange[0])
   console.log(`Setting ${noteInKey + 1} chord in the key of ${key.root} ${key.scaleType}.`)
+  console.log(midiChords[noteInKey])
   _setChord(midiChords[noteInKey])
 }
 
@@ -40,15 +41,15 @@ const handle = ({note, velocity, channel}) => {
     case CONFIG.kickMidiNote: {
       _setChordFromKeyAndNote({ key: STATE.key, note: STATE.note })
       const notes = _getNotesFromState({velocity, channel})
-      return notes.filter((_, idx) => idx !== notes.length - 1)
+      return notes
     }
     case CONFIG.snareMidiNote: {
       const notes = _getNotesFromState({velocity, channel})
       if(!notes.length){
         return []
       }
-      const lastNote = notes[notes.length - 1]
-      return [{...lastNote, note: lastNote.note + 12 }]
+      const lastNote = notes[notes.length - 2] 
+      return [{...lastNote, note: lastNote.note }]
     }
     case CONFIG.tomMidiNote: {
       const notes = _getNotesFromState({velocity, channel})
@@ -57,7 +58,7 @@ const handle = ({note, velocity, channel}) => {
       }
       const randomIndex = (1 + Math.round(Math.random() * (notes.length - 3)))
       const chosenNote = notes[randomIndex]
-      return [{...chosenNote, note: chosenNote.note + 12 }]
+      return [{...chosenNote, note: chosenNote.note }]
     }
     default: {
       const key = Object.values(CONFIG.keys).find((key) => note >= key.noteRange[0] && note <= key.noteRange[1])
