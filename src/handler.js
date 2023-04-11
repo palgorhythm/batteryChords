@@ -42,6 +42,7 @@ const _mute = () => {
 };
 
 const handle = ({ note, velocity, channel }) => {
+  // console.log({ note, velocity, channel })
   if (velocity === 0) {
     return [
       ..._getNotesFromState({ velocity, channel }),
@@ -55,6 +56,7 @@ const handle = ({ note, velocity, channel }) => {
     case CONFIG.kickMidiNote: {
       _setChordFromKeyAndNote({ key: STATE.key, note: STATE.note });
       const notes = _getNotesFromState({ velocity, channel });
+      console.log({notes})
       return notes;
     }
     case CONFIG.snareMidiNote: {
@@ -62,17 +64,18 @@ const handle = ({ note, velocity, channel }) => {
       if (!notes.length) {
         return [];
       }
-      const lastNote = notes[notes.length - 2];
-      return [{ ...lastNote, note: lastNote.note }];
+      const randomIndex = 1 + Math.round(Math.random() * (notes.length - 2));
+      const chosenNote = notes[randomIndex];
+      return [{ ...chosenNote, note: chosenNote.note + 12 }];
     }
     case CONFIG.tomMidiNote: {
       const notes = _getNotesFromState({ velocity, channel });
       if (!notes.length) {
         return [];
       }
-      const randomIndex = 1 + Math.round(Math.random() * (notes.length - 3));
+      const randomIndex = 1 + Math.round(Math.random() * (notes.length - 2));
       const chosenNote = notes[randomIndex];
-      return [{ ...chosenNote, note: chosenNote.note }];
+      return [{ ...chosenNote, note: chosenNote.note + 24 }];
     }
     default: {
       const key = Object.values(CONFIG.keys).find(

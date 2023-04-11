@@ -7,7 +7,7 @@ module.exports = {
       cMajor: { root: "c", scaleType: "major", noteRange: [27, 33] },
       dMajor: { root: "d", scaleType: "major", noteRange: [36, 42] },
       eMajor: { root: "e", scaleType: "major", noteRange: [45, 51] },
-      fSharpMajor: { root: "f#", scaleType: "major", noteRange: [54, 60] },
+      fSharpMajor: { root: "c", scaleType: "major", noteRange: [54, 60] },
       gSharpMajor: { root: "g#", scaleType: "major", noteRange: [63, 69] },
       aSharpMajor: { root: "a#", scaleType: "major", noteRange: [45, 51] },
       bSharpMajor: { root: "b", scaleType: "major", noteRange: [72, 78] },
@@ -15,7 +15,7 @@ module.exports = {
     },
     bass: {
       octave: {
-        min: 1,
+        min: 2,
         max: 3,
       },
     },
@@ -24,7 +24,7 @@ module.exports = {
         min: 4,
         max: 6,
       },
-      extensions: [0, 2, 4, 6, 8, 9],
+      extensions: [0, 2, 4, 6, 0, 2],
     },
     scale: {
       numNotes: 7,

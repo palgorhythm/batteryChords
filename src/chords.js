@@ -27,6 +27,7 @@ const _noteNameToMidi = ({ note, octaveMin, octaveMax }) => {
 };
 
 const _noteNameChordToMidi = (noteNameChord) => {
+  console.log(noteNameChord, "note name chord");
   const midi = [];
   for (let i = 0; i < noteNameChord.length; i++) {
     const note = noteNameChord[i];
