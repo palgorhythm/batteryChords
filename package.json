@@ -1,19 +1,25 @@
 {
   "name": "battery-chords",
-  "version": "1.0.0",
-  "description": "chords for my solo project, BATTERY",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "Max for Live MIDI devices for BATTERY — chord selector + voice-led jazz progressions",
   "repository": "https://github.com/palgorhythm/batteryChords.git",
   "author": "Jacob Richards <jacob.richards33@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "format": "prettier src/*.js --write"
+    "build": "npm run build:chord-selector && npm run build:voice-leader && npm run build:devices",
+    "build:chord-selector": "esbuild src/chord-selector/main.ts --bundle --platform=node --external:max-api --target=node20 --outfile=devices/batteryChords.js",
+    "build:voice-leader": "esbuild src/voice-leader/main.ts --bundle --platform=node --external:max-api --target=node20 --outfile=devices/voiceLeader.js",
+    "build:devices": "node scripts/build-amxd.mjs",
+    "dev": "esbuild src/chord-selector/main.ts src/voice-leader/main.ts --bundle --platform=node --external:max-api --target=node20 --outdir=devices --watch",
+    "format": "prettier src/**/*.ts --write"
   },
   "dependencies": {
-    "@tonaljs/chord": "^4.6.5",
-    "@tonaljs/note": "^4.6.5",
-    "@tonaljs/scale": "^4.6.5",
-    "prettier": "^2.7.1",
-    "tone": "^14.7.77"
+    "tonal": "^6.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^20.0.0",
+    "prettier": "^3.4.0"
   }
 }
