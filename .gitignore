@@ -1,6 +1,7 @@
 node_modules/
 dist/
 devices/*.js
+devices/*Project/
 .DS_Store
 *.log
 .env
