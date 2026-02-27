@@ -40,7 +40,7 @@
           "numinlets": 1, "numoutlets": 1,
           "outlettype": [ "int" ],
           "patching_rect": [ 8.0, 8.0, 46.0, 20.0 ],
-          "text": "midiin a"
+          "text": "midiin"
         }
       },
       {

@@ -76,9 +76,9 @@ export function handle(
         (k) => note >= k.noteRange[0] && note <= k.noteRange[1]
       );
       if (!key) return allNotesOff();
-      setChordFromKeyAndNote();
       STATE.key = key;
       STATE.note = note;
+      setChordFromKeyAndNote();
       return allNotesOff();
     }
   }

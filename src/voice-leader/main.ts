@@ -22,18 +22,13 @@ function log(msg: string): void {
 }
 
 // ─── Output helpers ───────────────────────────────────────────
-// All MIDI goes out prefixed with "midi" so Max can route it.
-// Display updates go out prefixed with "display" for chord name + keyboard.
 
 function sendMidi(note: number, velocity: number, channel: number): void {
   Max.outlet(["midi", note, velocity, channel]);
 }
 
 function sendDisplay(): void {
-  const name = getCurrentChordName();
-  // Send chord name
-  Max.outlet(["display", name]);
-  // Send playing notes for keyboard display — "keys" followed by MIDI note numbers
+  Max.outlet(["display", getCurrentChordName()]);
   Max.outlet(["keys", ...STATE.playingNotes]);
 }
 
@@ -42,7 +37,6 @@ function sendNoteOffs(): void {
     sendMidi(note, 0, CONFIG.outputChannel);
   }
   STATE.playingNotes = [];
-  // Clear keyboard display
   Max.outlet(["keys"]);
 }
 
@@ -61,7 +55,6 @@ function sendNoteEvents(
     STATE.playingNotes.push(n.note);
   }
 
-  // Update display after note changes
   if (noteOns.length > 0) {
     sendDisplay();
   }
@@ -87,9 +80,16 @@ Max.addHandler("loadChart", (filePath: string) => {
 Max.addHandler("autocomp", (enabled: number) => {
   STATE.autoComp.enabled = enabled === 1;
   log(`Auto-comp: ${STATE.autoComp.enabled ? "ON" : "OFF"}`);
-  if (STATE.autoComp.enabled && STATE.chart && STATE.chordIndex >= 0) {
-    const entry = STATE.chart.chords[STATE.chordIndex];
-    resetForNewChord(STATE.autoComp, entry.durationBeats);
+  if (STATE.autoComp.enabled) {
+    const form = STATE.chart?.metadata.form;
+    if (form && form.length > 0) {
+      const section = STATE.chart!.sections.find(
+        (s) => s.name === form[STATE.formIndex]
+      );
+      if (section && STATE.chordIndex >= 0 && STATE.chordIndex < section.chords.length) {
+        resetForNewChord(STATE.autoComp, section.chords[STATE.chordIndex].durationBeats);
+      }
+    }
   }
 });
 
@@ -111,8 +111,19 @@ Max.addHandler("beat", () => {
     const ons = advanceAndPlay(CONFIG.autoCompVelocity);
     sendNoteEvents([], ons);
     postChordInfo();
-    const entry = STATE.chart.chords[STATE.chordIndex];
-    resetForNewChord(STATE.autoComp, entry.durationBeats);
+
+    // Get the new current chord's duration for next auto-comp cycle
+    const form = STATE.chart.metadata.form;
+    if (form && form.length > 0) {
+      const section = STATE.chart.sections.find(
+        (s) => s.name === form[STATE.formIndex]
+      );
+      if (section && STATE.chordIndex >= 0 && STATE.chordIndex < section.chords.length) {
+        resetForNewChord(STATE.autoComp, section.chords[STATE.chordIndex].durationBeats);
+        // Mark beat 0 as already triggered — chord was just played by advanceAndPlay above
+        STATE.autoComp.triggeredBeats.add(0);
+      }
+    }
   }
 });
 
@@ -133,6 +144,11 @@ Max.addHandler("triggerNote", (note: number) => {
   log(`Trigger note set to MIDI ${note}`);
 });
 
+Max.addHandler("sectionAdvanceNote", (note: number) => {
+  CONFIG.sectionAdvanceNote = note;
+  log(`Section advance note set to MIDI ${note}`);
+});
+
 Max.addHandler("soloPadStart", (note: number) => {
   CONFIG.soloPadStart = note;
   log(`Solo pad range: MIDI ${note}–${note + CONFIG.soloPadCount - 1}`);
@@ -147,30 +163,32 @@ Max.addHandler("soloPadCount", (count: number) => {
 
 Max.addHandlers({
   [Max.MESSAGE_TYPES.ALL]: (handled: boolean, ...args: number[]) => {
-    const [, midiNote, midiVelocity, midiChannel] = args;
+    // Skip messages already handled by named handlers (beat, loadChart, etc.)
+    if (handled) return;
+
+    const [, midiNote, midiVelocity] = args;
+
+    // Guard: ignore non-numeric args (e.g., string messages that leak through)
+    if (typeof midiNote !== "number" || typeof midiVelocity !== "number") return;
 
     if (STATE.autoComp.enabled) {
-      const soloEnd = CONFIG.soloPadStart + CONFIG.soloPadCount;
-      if (
-        midiVelocity > 0 &&
-        midiNote >= CONFIG.soloPadStart &&
-        midiNote < soloEnd
-      ) {
-        const { noteOns } = handleMidi(midiNote, midiVelocity, midiChannel);
-        sendNoteEvents([], noteOns);
-      }
-      handled = true;
+      // In auto-comp, ignore trigger/section notes (chords are beat-driven)
+      // but process solo notes (both note-on and note-off for proper articulation)
+      if (midiNote === CONFIG.triggerNote || midiNote === CONFIG.sectionAdvanceNote) return;
+
+      const { noteOffs, noteOns } = handleMidi(midiNote, midiVelocity);
+      sendNoteEvents(noteOffs, noteOns);
       return;
     }
 
-    const { noteOffs, noteOns } = handleMidi(midiNote, midiVelocity, midiChannel);
+    // Manual mode: handle all MIDI
+    const { noteOffs, noteOns } = handleMidi(midiNote, midiVelocity);
 
     if (noteOns.length > 0) {
       postChordInfo();
     }
 
     sendNoteEvents(noteOffs, noteOns);
-    handled = true;
   },
 });
 
@@ -186,11 +204,15 @@ function loadChartFromPath(filePath: string): void {
     const chart = parseChart(text);
     resetState();
     STATE.chart = chart;
-    log(
-      `Loaded: ${chart.metadata.title ?? filePath} — ${chart.chords.length} chords`
-    );
-    log(`Chords: ${chart.chords.map((c) => c.chord).join(" | ")}`);
-    log(`Trigger: MIDI ${CONFIG.triggerNote} | Solo pads: MIDI ${CONFIG.soloPadStart}-${CONFIG.soloPadStart + CONFIG.soloPadCount - 1}`);
+
+    const sectionNames = chart.sections.map((s) => s.name);
+    const totalChords = chart.sections.reduce((sum, s) => sum + s.chords.length, 0);
+    const form = chart.metadata.form?.join(" ") ?? sectionNames.join(" ");
+
+    log(`Loaded: ${chart.metadata.title ?? filePath}`);
+    log(`Sections: ${sectionNames.join(", ")} (${totalChords} chords total)`);
+    log(`Form: ${form}`);
+    log(`Trigger: MIDI ${CONFIG.triggerNote} | Section advance: MIDI ${CONFIG.sectionAdvanceNote}`);
   } catch (err) {
     log(`ERROR loading chart: ${err}`);
   }

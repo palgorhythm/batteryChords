@@ -135,7 +135,7 @@ The voicing engine uses jazz piano voicing conventions:
 - **Bill Evans-style rootless voicings** (Type A and Type B) for smooth ii-V-I movement
 - **Drop 2 voicings** for wider spacing
 - **Quartal voicings** for modal sounds (McCoy Tyner / Herbie Hancock style)
-- **Bass note** in octave 2-3 (MIDI 36-55), moving by step or 4th/5th
+- **Bass note** in octave 2-3 (MIDI 36-52), moving by step or 4th/5th
 - **Upper voices** in octave 3-5 (MIDI 48-72), voice-led to minimize movement
 - **Guide tone weighting** — 3rds and 7ths get priority in voice leading distance calculation
 - **Weighted randomness** — picks from top 3 smoothest candidates so each form pass sounds different

@@ -1,6 +1,7 @@
+import Max from "max-api";
 import { Chord, Note } from "tonal";
 import type { VoicingResult } from "../shared/types";
-import { clampMidi, closestOctave, randInt, randPick, weightedPick } from "../shared/midi";
+import { closestOctave, randPick, weightedPick } from "../shared/midi";
 import { getVoicingTemplates } from "./voicingDict";
 
 // ─── Ranges ───────────────────────────────────────────────────
@@ -9,7 +10,6 @@ import { getVoicingTemplates } from "./voicingDict";
 
 const BASS_RANGE = { min: 36, max: 52 };   // C2–E3
 const UPPER_RANGE = { min: 55, max: 74 };  // G3–D5
-const SOLO_RANGE = { min: 72, max: 96 };   // C5–C7
 
 // ─── Chord parsing ────────────────────────────────────────────
 
@@ -136,9 +136,7 @@ function chooseBass(rootPc: number, prevBass: number | null): number {
 
 export function voiceLead(
   prevVoicing: VoicingResult | null,
-  chordSymbol: string,
-  _formPass = 0,
-  _chordIndex = 0
+  chordSymbol: string
 ): VoicingResult {
   const parsed = parseChord(chordSymbol);
   if (!parsed) {
@@ -149,8 +147,9 @@ export function voiceLead(
   const candidates = generateCandidates(rootPc, quality);
 
   if (candidates.length === 0) {
-    const fallback = notes.slice(0, 4).map((n, i) => {
-      const midi = Note.midi(`${n}${i === 0 ? 4 : 4}`);
+    Max.post(`Warning: no voicing candidates for ${chordSymbol}, using fallback`);
+    const fallback = notes.slice(0, 4).map((n) => {
+      const midi = Note.midi(`${n}4`);
       return midi ?? 60;
     });
     return {
@@ -202,25 +201,7 @@ export function voiceLead(
   };
 }
 
-// ─── Solo note generation ─────────────────────────────────────
-
-export function getSoloNote(chordSymbol: string): number {
-  const parsed = parseChord(chordSymbol);
-  if (!parsed) return 72;
-
-  const pc = parsed.notes.map((n) => {
-    const midi = Note.midi(`${n}0`);
-    return midi != null ? midi % 12 : 0;
-  });
-
-  const chosenPc = randPick(pc);
-  const octave = randInt(
-    Math.floor(SOLO_RANGE.min / 12),
-    Math.floor(SOLO_RANGE.max / 12)
-  );
-  const midi = chosenPc + octave * 12;
-  return clampMidi(Math.max(SOLO_RANGE.min, Math.min(SOLO_RANGE.max, midi)));
-}
+// ─── Scale for soloing ────────────────────────────────────────
 
 export function getScaleForChord(chordSymbol: string): number[] {
   const parsed = parseChord(chordSymbol);

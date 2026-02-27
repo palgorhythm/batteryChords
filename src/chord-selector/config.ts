@@ -19,6 +19,8 @@ export const CONFIG = {
     aSharpMajor: { root: "A#", scaleType: "major", noteRange: [90, 96] },
   } as Record<string, KeyConfig>,
   bass: { octave: { min: 2, max: 3 } },
+  // Extensions: scale-degree offsets from each root to build a chord.
+  // [0, 2, 4, 6, 0, 2] = root, 3rd, 5th, 7th, root(8va), 9th — a 6-note voicing
   chord: { octave: { min: 4, max: 6 }, extensions: [0, 2, 4, 6, 0, 2] },
   scale: { numNotes: 7 },
 } as const;

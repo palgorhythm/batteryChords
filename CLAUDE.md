@@ -55,14 +55,24 @@ devices/
 
 ### Chart Format
 
-Simple text lead-sheet format in `charts/*.chart`:
+Simple text lead-sheet format in `charts/*.chart` with optional sections:
 ```
 # Title: Autumn Leaves
 # Time: 4/4
+# Form: A A B A                            ← section playback order
+
+[A]                                         ← section marker
 | Cm7     | F7      | Bbmaj7  | Ebmaj7  |
 | Dm7 G7  | Cmaj7   |                      ← multiple chords = evenly split
+
+[B]
 | Dm7(3) G7(1) | Cmaj7 |                   ← explicit beat counts
 ```
+- If no `[Section]` markers: whole chart = one section (backwards compatible)
+- If no `# Form:`: sections play in order of appearance
+- MIDI note 36 (kick) advances chords within a section
+- MIDI note 39 (configurable) jumps to the next section in the form
+- When a section's chords are exhausted, auto-advances to next section
 
 ## Key Commands
 

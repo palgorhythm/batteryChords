@@ -4,7 +4,7 @@ import { STATE } from "./state";
 
 function log(msg: string): void {
   Max.post(msg);
-  console.log(msg); // also shows in n4m.monitor
+  console.log(msg);
 }
 
 function sendNoteOffs(): void {
@@ -18,9 +18,14 @@ function sendNotes(notes: { note: number; velocity: number; channel: number }[])
   const noteOffs = notes.filter((n) => n.velocity === 0);
   const noteOns = notes.filter((n) => n.velocity !== 0);
 
+  // Send note-offs and remove from tracking
+  const offSet = new Set(noteOffs.map((n) => n.note));
   for (const n of noteOffs) {
     Max.outlet([n.note, 0, n.channel]);
   }
+  STATE.playingNotes = STATE.playingNotes.filter((n) => !offSet.has(n));
+
+  // Send note-ons and track
   for (const n of noteOns) {
     Max.outlet([n.note, n.velocity, n.channel]);
     STATE.playingNotes.push(n.note);
@@ -28,11 +33,13 @@ function sendNotes(notes: { note: number; velocity: number; channel: number }[])
 }
 
 Max.addHandlers({
-  [Max.MESSAGE_TYPES.ALL]: (handled: boolean, ...args: number[]) => {
+  [Max.MESSAGE_TYPES.ALL]: (_handled: boolean, ...args: number[]) => {
     const [, midiNote, midiVelocity, midiChannel] = args;
-    const isNoteOn = midiVelocity !== 0;
 
-    if (isNoteOn) {
+    // Guard: ignore non-MIDI messages
+    if (typeof midiNote !== "number" || typeof midiVelocity !== "number") return;
+
+    if (midiVelocity !== 0) {
       sendNoteOffs();
     }
 
@@ -43,7 +50,6 @@ Max.addHandlers({
     }
 
     sendNotes(notesToPlay);
-    handled = true;
   },
 });
 
