@@ -29,6 +29,7 @@ function sendMidi(note: number, velocity: number, channel: number): void {
 
 function sendDisplay(): void {
   Max.outlet(["display", getCurrentChordName()]);
+  Max.outlet(["progress", getProgressInfo()]);
   Max.outlet(["keys", ...STATE.playingNotes]);
 }
 
@@ -149,14 +150,9 @@ Max.addHandler("sectionAdvanceNote", (note: number) => {
   log(`Section advance note set to MIDI ${note}`);
 });
 
-Max.addHandler("soloPadStart", (note: number) => {
-  CONFIG.soloPadStart = note;
-  log(`Solo pad range: MIDI ${note}–${note + CONFIG.soloPadCount - 1}`);
-});
-
-Max.addHandler("soloPadCount", (count: number) => {
-  CONFIG.soloPadCount = count;
-  log(`Solo pad count: ${count}`);
+Max.addHandler("soloNotes", (...notes: number[]) => {
+  CONFIG.soloNotes = notes;
+  log(`Solo notes: MIDI ${notes.join(", ")}`);
 });
 
 // ─── MIDI input handler ───────────────────────────────────────

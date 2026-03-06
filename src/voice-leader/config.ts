@@ -1,15 +1,12 @@
 export const CONFIG = {
-  /** MIDI note that advances to the next chord and plays it */
-  triggerNote: 36,
+  /** MIDI note that advances to the next chord and plays it (kick) */
+  triggerNote: 0,
 
-  /** MIDI note that advances to the next section in the form */
-  sectionAdvanceNote: 39,
+  /** MIDI note that advances to the next section in the form (floor tom) */
+  sectionAdvanceNote: 3,
 
-  /** First MIDI note in the solo pad range */
-  soloPadStart: 37,
-
-  /** Number of solo pads (typically 7 for diatonic scale) */
-  soloPadCount: 7,
+  /** MIDI notes that trigger solo notes (crash cymbal, all 5 zones) */
+  soloNotes: [9, 10, 11, 12, 13],
 
   /** Velocity for auto-comp chord attacks */
   autoCompVelocity: 90,

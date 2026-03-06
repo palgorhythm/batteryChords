@@ -205,7 +205,7 @@ export function voiceLead(
 
 export function getScaleForChord(chordSymbol: string): number[] {
   const parsed = parseChord(chordSymbol);
-  if (!parsed) return [0, 2, 4, 5, 7, 9, 11];
+  if (!parsed) return [0, 2, 4, 6, 7, 9, 11]; // lydian fallback
 
   const chord = Chord.get(chordSymbol);
   const scaleName = chord.type.includes("minor")
@@ -214,11 +214,11 @@ export function getScaleForChord(chordSymbol: string): number[] {
       ? "mixolydian"
       : chord.type.includes("diminished") || chord.type.includes("half")
         ? "locrian"
-        : "ionian";
+        : "lydian";
 
   const rootPc = parsed.rootPc;
   const scaleIntervals: Record<string, number[]> = {
-    ionian:     [0, 2, 4, 5, 7, 9, 11],
+    lydian:     [0, 2, 4, 6, 7, 9, 11],  // #4, no natural 4th over major chords
     dorian:     [0, 2, 3, 5, 7, 9, 10],
     mixolydian: [0, 2, 4, 5, 7, 9, 10],
     locrian:    [0, 1, 3, 5, 6, 8, 10],

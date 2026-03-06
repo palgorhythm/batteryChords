@@ -9,6 +9,8 @@ export interface VoiceLeaderState {
   currentVoicing: VoicingResult | null;
   playingNotes: number[];
   lastSoloNote: number | null;
+  soloDirection: number;     // positive = going up, negative = going down
+  soloDirectionRun: number;  // how many notes we've gone in this direction
   tempo: number;
   autoComp: AutoCompState;
   formPassCount: number;
@@ -21,6 +23,8 @@ export const STATE: VoiceLeaderState = {
   currentVoicing: null,
   playingNotes: [],
   lastSoloNote: null,
+  soloDirection: 1,
+  soloDirectionRun: 0,
   tempo: 120,
   autoComp: createAutoCompState(),
   formPassCount: 0,
@@ -32,6 +36,8 @@ export function resetState(): void {
   STATE.currentVoicing = null;
   STATE.playingNotes = [];
   STATE.lastSoloNote = null;
+  STATE.soloDirection = 1;
+  STATE.soloDirectionRun = 0;
   STATE.autoComp = createAutoCompState();
   STATE.formPassCount = 0;
 }

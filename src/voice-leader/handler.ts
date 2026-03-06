@@ -54,6 +54,28 @@ export function advanceAndPlay(velocity: number): NoteEvent[] {
   const newVoicing = voiceLead(STATE.currentVoicing, entry.chord);
   STATE.currentVoicing = newVoicing;
 
+  // Snap lastSoloNote to nearest note in the new chord's scale
+  // so soloing flows smoothly across chord changes
+  if (STATE.lastSoloNote != null) {
+    const newScale = getScaleForChord(entry.chord);
+    const soloNotes: number[] = [];
+    for (const pc of newScale) {
+      for (let oct = 5; oct <= 7; oct++) {
+        const m = pc + oct * 12;
+        if (m >= 72 && m <= 96) soloNotes.push(m);
+      }
+    }
+    if (soloNotes.length > 0) {
+      let closest = soloNotes[0];
+      let closestDist = Math.abs(soloNotes[0] - STATE.lastSoloNote);
+      for (const n of soloNotes) {
+        const d = Math.abs(n - STATE.lastSoloNote);
+        if (d < closestDist) { closest = n; closestDist = d; }
+      }
+      STATE.lastSoloNote = closest;
+    }
+  }
+
   // Log
   const bassName = Note.fromMidi(newVoicing.bass);
   const upperNames = newVoicing.upper.map((n) => Note.fromMidi(n)).join(" ");
@@ -139,7 +161,9 @@ export function getNoteOffs(): NoteEvent[] {
 
 // ─── Solo notes ───────────────────────────────────────────────
 
-/** Play a solo note — random scale tone, weighted toward stepwise motion */
+/** Play a solo note — melodic, with directional momentum.
+ *  Melodies go up for a few notes then come back down (or vice versa).
+ *  Mostly stepwise, occasional skips, rare leaps. */
 export function playSoloNote(velocity: number): NoteEvent[] {
   const entry = getCurrentChordEntry();
   if (!entry) return [];
@@ -163,20 +187,56 @@ export function playSoloNote(velocity: number): NoteEvent[] {
     const nearby = candidates.filter((n) => Math.abs(n - mid) <= 5);
     const chosen = randPick(nearby.length > 0 ? nearby : candidates);
     STATE.lastSoloNote = chosen;
+    STATE.soloDirection = Math.random() < 0.5 ? 1 : -1;
+    STATE.soloDirectionRun = 0;
     return [noteOn(chosen, velocity, CONFIG.outputChannel)];
   }
 
-  // Weight by distance from last note
+  // Maybe reverse direction — more likely the longer we've been going one way
+  // After 2-4 notes, increasingly likely to turn around
+  const reverseChance = Math.min(0.7, STATE.soloDirectionRun * 0.15);
+  if (Math.random() < reverseChance) {
+    STATE.soloDirection *= -1;
+    STATE.soloDirectionRun = 0;
+  }
+
+  const dir = STATE.soloDirection;
+  const last = STATE.lastSoloNote;
+
+  // Weight: favor notes in the current direction, close to last note
   const weights = candidates.map((n) => {
-    const dist = Math.abs(n - STATE.lastSoloNote!);
-    if (dist === 0) return 0.5;
-    if (dist <= 2) return 8;
-    if (dist <= 4) return 4;
-    if (dist <= 7) return 1.5;
-    return 0.3;
+    const dist = Math.abs(n - last);
+    const sameDir = dir > 0 ? n > last : n < last;
+    const isRepeat = n === last;
+
+    if (isRepeat) return 0.3;          // avoid repeating same note
+
+    // Base weight by distance (stepwise = heavy, leaps = light)
+    let w: number;
+    if (dist <= 2) w = 10;             // step
+    else if (dist <= 4) w = 5;         // small skip
+    else if (dist <= 7) w = 1.5;       // larger skip
+    else w = 0.2;                      // leap
+
+    // Directional bonus: notes in the current direction get 3x
+    if (sameDir) w *= 3;
+
+    return w;
   });
 
   const chosen = weightedPick(candidates, weights);
+
+  // Update direction tracking
+  if (chosen !== last) {
+    const newDir = chosen > last ? 1 : -1;
+    if (newDir === STATE.soloDirection) {
+      STATE.soloDirectionRun++;
+    } else {
+      STATE.soloDirection = newDir;
+      STATE.soloDirectionRun = 1;
+    }
+  }
+
   STATE.lastSoloNote = chosen;
   return [noteOn(chosen, velocity, CONFIG.outputChannel)];
 }
@@ -201,11 +261,11 @@ export function handleMidi(
     if (note === CONFIG.triggerNote || note === CONFIG.sectionAdvanceNote) {
       return { noteOffs: getNoteOffs(), noteOns: [] };
     }
-    // Solo note-off
-    if (STATE.lastSoloNote != null) {
-      const off = noteOff(STATE.lastSoloNote, CONFIG.outputChannel);
-      STATE.lastSoloNote = null;
-      return { noteOffs: [off], noteOns: [] };
+    // Solo note-offs: ignore — the next solo note-on silences the previous one.
+    // This prevents cross-zone note-offs (SP sends multiple zones per hit)
+    // from killing solo notes prematurely.
+    if (CONFIG.soloNotes.includes(note)) {
+      return { noteOffs: [], noteOns: [] };
     }
     return { noteOffs: [], noteOns: [] };
   }
@@ -222,20 +282,29 @@ export function handleMidi(
     return { noteOffs: offs, noteOns: ons };
   }
 
-  // Section advance
+  // Section advance — only if chart has multiple sections
   if (note === CONFIG.sectionAdvanceNote) {
-    const offs = getNoteOffs();
-    const ons = advanceSectionAndPlay(velocity);
-    return { noteOffs: offs, noteOns: ons };
+    const form = STATE.chart?.metadata.form;
+    if (form && form.length > 1) {
+      const offs = getNoteOffs();
+      const ons = advanceSectionAndPlay(velocity);
+      return { noteOffs: offs, noteOns: ons };
+    }
+    return { noteOffs: [], noteOns: [] };
   }
 
-  // Any other note: solo — silence previous solo note first
-  const soloOffs: NoteEvent[] = [];
-  if (STATE.lastSoloNote != null) {
-    soloOffs.push(noteOff(STATE.lastSoloNote, CONFIG.outputChannel));
+  // Solo note (any crash zone)
+  if (CONFIG.soloNotes.includes(note)) {
+    const soloOffs: NoteEvent[] = [];
+    if (STATE.lastSoloNote != null) {
+      soloOffs.push(noteOff(STATE.lastSoloNote, CONFIG.outputChannel));
+    }
+    const ons = playSoloNote(velocity);
+    return { noteOffs: soloOffs, noteOns: ons };
   }
-  const ons = playSoloNote(velocity);
-  return { noteOffs: soloOffs, noteOns: ons };
+
+  // Everything else: ignore
+  return { noteOffs: [], noteOns: [] };
 }
 
 // ─── Display helpers ──────────────────────────────────────────
